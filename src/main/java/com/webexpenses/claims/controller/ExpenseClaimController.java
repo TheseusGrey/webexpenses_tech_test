@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -103,7 +104,8 @@ public class ExpenseClaimController {
             }
         }
 
-        List<ClaimResponse> results = claimService.getClaims(id, parsedStatus);
+        List<ClaimResponse> results = claimService.getClaims(
+                Optional.ofNullable(id), Optional.ofNullable(parsedStatus));
         return ResponseEntity.ok(results);
     }
 
