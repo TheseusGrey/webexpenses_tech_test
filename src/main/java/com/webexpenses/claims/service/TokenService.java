@@ -1,13 +1,16 @@
 package com.webexpenses.claims.service;
 
+import com.webexpenses.claims.entity.Role;
 import com.webexpenses.claims.entity.User;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.UUID;
 
 @Service
 public class TokenService {
@@ -33,4 +36,20 @@ public class TokenService {
 
         return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
     }
+
+    /**
+     * Extracts user identity from a JWT authentication token.
+     *
+     * @return a record containing the username, userId, and role from the token
+     */
+    public TokenClaims extractUser(JwtAuthenticationToken auth) {
+        var token = auth.getToken();
+        return new TokenClaims(
+                token.getSubject(),
+                UUID.fromString(token.getClaimAsString("userId")),
+                Role.valueOf(token.getClaimAsString("role"))
+        );
+    }
+
+    public record TokenClaims(String username, UUID userId, Role role) {}
 }

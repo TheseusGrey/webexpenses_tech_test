@@ -24,22 +24,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.List;
 
 /**
- * Security configuration for stateless JWT-based authentication.
- *
- * Key decisions:
- * - RSA 2048-bit key pair generated at startup (sufficient for dev/test;
- *   production should load from a secret store or use a JWKS endpoint)
- * - CSRF disabled: stateless API with no cookies, so CSRF is not applicable
- *   (ref: https://docs.spring.io/spring-security/reference/servlet/exploits/csrf.html#csrf-when)
- * - Session: STATELESS - no HttpSession created or used
- * - /api/auth/login permitted without authentication; all other endpoints require a valid JWT
- * - Method-level security via @RolesAllowed (JSR-250) for role enforcement
- * - Custom JwtAuthenticationConverter maps our "role" claim to ROLE_ authorities
- *
- * References:
- * - https://docs.spring.io/spring-security/reference/servlet/oauth2/resource-server/jwt.html
- * - https://docs.spring.io/spring-security/reference/servlet/exploits/csrf.html
- * - https://docs.spring.io/spring-security/reference/servlet/authorization/method-security.html
+ * Security configuration for JWT-based authentication.
  */
 @Configuration
 @EnableWebSecurity
