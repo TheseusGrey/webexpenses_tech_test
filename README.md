@@ -30,3 +30,7 @@ To also remove the database volume (wipes all data):
 docker compose down -v
 podman compose down -v
 ```
+
+## Manual API Testing
+
+The file `requests.http` contains sample requests for the auth endpoint (valid and invalid cases). Open it in IntelliJ or VS Code (with the REST Client extension) to execute requests directly against a running instance.
