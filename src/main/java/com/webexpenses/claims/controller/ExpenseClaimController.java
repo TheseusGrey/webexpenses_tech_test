@@ -8,6 +8,8 @@ import com.webexpenses.claims.entity.ClaimStatus;
 import com.webexpenses.claims.entity.Role;
 import com.webexpenses.claims.service.ExpenseClaimService;
 import com.webexpenses.claims.service.TokenService;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -54,6 +56,8 @@ public class ExpenseClaimController {
 
     @RolesAllowed("EMPLOYEE")
     @PostMapping(consumes = "application/json")
+    @CircuitBreaker(name = "claimsService")
+    @Retry(name = "claimsService")
     public ResponseEntity<ClaimResponse> submitClaim(
             @Valid @RequestBody CreateClaimRequest request,
             JwtAuthenticationToken auth) {
@@ -73,6 +77,8 @@ public class ExpenseClaimController {
      */
     @RolesAllowed({"EMPLOYEE", "APPROVER"})
     @GetMapping
+    @CircuitBreaker(name = "claimsService")
+    @Retry(name = "claimsService")
     public ResponseEntity<List<ClaimResponse>> getClaims(
             @RequestParam(required = false) UUID id,
             @RequestParam(required = false) String status,
@@ -114,6 +120,8 @@ public class ExpenseClaimController {
      */
     @RolesAllowed({"EMPLOYEE", "APPROVER"})
     @GetMapping("/{id}")
+    @CircuitBreaker(name = "claimsService")
+    @Retry(name = "claimsService")
     public ResponseEntity<ClaimResponse> getClaim(
             @PathVariable UUID id,
             JwtAuthenticationToken auth) {
@@ -133,6 +141,8 @@ public class ExpenseClaimController {
      */
     @RolesAllowed("APPROVER")
     @PatchMapping("/{id}/approve")
+    @CircuitBreaker(name = "claimsService")
+    @Retry(name = "claimsService")
     public ResponseEntity<ClaimResponse> approveClaim(
             @PathVariable UUID id,
             JwtAuthenticationToken auth) {
@@ -148,6 +158,8 @@ public class ExpenseClaimController {
      */
     @RolesAllowed("APPROVER")
     @PatchMapping(value = "/{id}/reject", consumes = "application/json")
+    @CircuitBreaker(name = "claimsService")
+    @Retry(name = "claimsService")
     public ResponseEntity<ClaimResponse> rejectClaim(
             @PathVariable UUID id,
             @Valid @RequestBody RejectClaimRequest request,
@@ -164,6 +176,8 @@ public class ExpenseClaimController {
      */
     @RolesAllowed("APPROVER")
     @GetMapping("/{id}/audit")
+    @CircuitBreaker(name = "claimsService")
+    @Retry(name = "claimsService")
     public ResponseEntity<List<AuditEventResponse>> getAuditTrail(
             @PathVariable UUID id) {
 

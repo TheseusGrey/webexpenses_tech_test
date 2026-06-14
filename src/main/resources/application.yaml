@@ -8,3 +8,45 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      claimsService:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+        ignore-exceptions:
+          - org.springframework.web.server.ResponseStatusException
+          - org.springframework.security.access.AccessDeniedException
+          - org.springframework.security.authentication.BadCredentialsException
+      authService:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+        ignore-exceptions:
+          - org.springframework.web.server.ResponseStatusException
+          - org.springframework.security.access.AccessDeniedException
+          - org.springframework.security.authentication.BadCredentialsException
+  retry:
+    instances:
+      claimsService:
+        max-attempts: 3
+        wait-duration: 500ms
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+          - org.springframework.dao.TransientDataAccessException
+      authService:
+        max-attempts: 3
+        wait-duration: 500ms
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+          - org.springframework.dao.TransientDataAccessException

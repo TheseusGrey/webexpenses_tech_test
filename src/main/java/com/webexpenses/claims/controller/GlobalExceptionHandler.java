@@ -1,5 +1,6 @@
 package com.webexpenses.claims.controller;
 
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -77,6 +78,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(ex.getStatusCode())
                 .body(Map.of("error", ex.getReason() != null ? ex.getReason() : "Request failed"));
+    }
+
+    @ExceptionHandler(CallNotPermittedException.class)
+    public ResponseEntity<Map<String, String>> handleCircuitBreakerOpen(CallNotPermittedException ex) {
+        return ResponseEntity
+                .status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(Map.of("error", "Service temporarily unavailable, please try again later"));
     }
 
     @ExceptionHandler(Exception.class)

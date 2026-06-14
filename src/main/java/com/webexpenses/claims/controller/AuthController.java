@@ -3,6 +3,8 @@ package com.webexpenses.claims.controller;
 import com.webexpenses.claims.dto.LoginRequest;
 import com.webexpenses.claims.dto.LoginResponse;
 import com.webexpenses.claims.service.AuthService;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -42,6 +44,8 @@ public class AuthController {
      * Authenticate user credentials and return a JWT.
      */
     @PostMapping(value = "/login", consumes = "application/json")
+    @CircuitBreaker(name = "authService")
+    @Retry(name = "authService")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         String token = authService.login(request);
         return ResponseEntity.ok(new LoginResponse(token, "Bearer"));
