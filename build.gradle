@@ -59,6 +59,7 @@ configurations {
 dependencies {
 	e2eImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
 	e2eImplementation 'tools.jackson.core:jackson-databind'
+	e2eRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.register('e2eTest', Test) {
