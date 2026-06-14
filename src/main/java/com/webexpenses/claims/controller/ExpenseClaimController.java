@@ -4,7 +4,8 @@ import com.webexpenses.claims.dto.AuditEventResponse;
 import com.webexpenses.claims.dto.ClaimResponse;
 import com.webexpenses.claims.dto.CreateClaimRequest;
 import com.webexpenses.claims.dto.RejectClaimRequest;
-import com.webexpenses.claims.repository.UserRepository;
+import com.webexpenses.claims.entity.ClaimStatus;
+import com.webexpenses.claims.entity.Role;
 import com.webexpenses.claims.service.ExpenseClaimService;
 import com.webexpenses.claims.service.TokenService;
 import jakarta.annotation.security.RolesAllowed;
@@ -13,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.UUID;
@@ -42,14 +44,13 @@ public class ExpenseClaimController {
     private final ExpenseClaimService claimService;
     private final TokenService tokenService;
 
-    public ExpenseClaimController(ExpenseClaimService claimService, TokenService tokenService) {
+    public ExpenseClaimController(
+            ExpenseClaimService claimService,
+            TokenService tokenService) {
         this.claimService = claimService;
         this.tokenService = tokenService;
     }
 
-    /**
-     * Submit a new expense claim. Only EMPLOYEE role permitted.
-     */
     @RolesAllowed("EMPLOYEE")
     @PostMapping(consumes = "application/json")
     public ResponseEntity<ClaimResponse> submitClaim(
@@ -72,22 +73,38 @@ public class ExpenseClaimController {
     @RolesAllowed({"EMPLOYEE", "APPROVER"})
     @GetMapping
     public ResponseEntity<List<ClaimResponse>> getClaims(
-            @RequestParam(required = false) UUID user,
+            @RequestParam(required = false) UUID id,
             @RequestParam(required = false) String status,
             JwtAuthenticationToken auth) {
 
-        // TODO: Implement
-        // 1. If both user and status are null → return 400
-        // 2. Extract role from JWT
-        // 3. If EMPLOYEE:
-        //    - Cannot use status filter → 403
-        //    - Can only query own userId → 403 if user != own ID
-        // 4. If APPROVER:
-        //    - Can use any combination of filters
-        // 5. Parse status string to ClaimStatus enum (400 if invalid)
-        // 6. Call service.getClaims(user, parsedStatus)
-        // 7. Return 200 with list
-        throw new UnsupportedOperationException("Not yet implemented");
+        // Calling this a 400 for now, if you wanted an "ADMIN" role, having an option to return
+        // everything on everyone could be useful here (also for support/debugging)
+        if (id == null && status == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "At least one filter (user or status) is required");
+        }
+
+        TokenService.TokenClaims claims = tokenService.extractUser(auth);
+
+        if (claims.role() == Role.EMPLOYEE) {
+            if (!claims.userId().equals(id)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+            }
+        }
+
+
+        ClaimStatus parsedStatus = null;
+        if (status != null) {
+            try {
+                parsedStatus = ClaimStatus.valueOf(status.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Invalid status: " + status);
+            }
+        }
+
+        List<ClaimResponse> results = claimService.getClaims(id, parsedStatus);
+        return ResponseEntity.ok(results);
     }
 
     /**
@@ -100,11 +117,16 @@ public class ExpenseClaimController {
             @PathVariable UUID id,
             JwtAuthenticationToken auth) {
 
-        // TODO: Implement
-        // 1. Call service.getClaim(id) — throws 404 if not found
-        // 2. Check role: EMPLOYEE must own the claim, else 403
-        // 3. Return 200 with claim
-        throw new UnsupportedOperationException("Not yet implemented");
+        TokenService.TokenClaims claims = tokenService.extractUser(auth);
+
+        if (claims.role() == Role.EMPLOYEE) {
+            if (!claims.userId().equals(id)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+            }
+        }
+
+        ClaimResponse response = claimService.getClaim(id);
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -116,13 +138,10 @@ public class ExpenseClaimController {
             @PathVariable UUID id,
             JwtAuthenticationToken auth) {
 
-        // TODO: Implement
-        // 1. Extract role — if not APPROVER, return 403
-        // 2. Extract username from JWT
-        // 3. Call service.approveClaim(id, username)
-        //    - 404 if not found, 409 if not PENDING
-        // 4. Return 200 with updated claim
-        throw new UnsupportedOperationException("Not yet implemented");
+        String approver = tokenService.extractUser(auth).username();
+        ClaimResponse response = claimService.approveClaim(id, approver);
+
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -135,13 +154,10 @@ public class ExpenseClaimController {
             @Valid @RequestBody RejectClaimRequest request,
             JwtAuthenticationToken auth) {
 
-        // TODO: Implement
-        // 1. Extract role — if not APPROVER, return 403
-        // 2. Extract username from JWT
-        // 3. Call service.rejectClaim(id, request, username)
-        //    - 404 if not found, 409 if not PENDING
-        // 4. Return 200 with updated claim
-        throw new UnsupportedOperationException("Not yet implemented");
+        String approver = tokenService.extractUser(auth).username();
+        ClaimResponse response = claimService.rejectClaim(id, request, approver);
+
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -150,14 +166,10 @@ public class ExpenseClaimController {
     @RolesAllowed("APPROVER")
     @GetMapping("/{id}/audit")
     public ResponseEntity<List<AuditEventResponse>> getAuditTrail(
-            @PathVariable UUID id,
-            JwtAuthenticationToken auth) {
+            @PathVariable UUID id) {
 
-        // TODO: Implement
-        // 1. Extract role — if not APPROVER, return 403
-        // 2. Call service.getAuditTrail(id)
-        //    - 404 if claim doesn't exist
-        // 3. Return 200 with audit events
-        throw new UnsupportedOperationException("Not yet implemented");
+        List<AuditEventResponse> response = claimService.getAuditTrail(id);
+
+        return ResponseEntity.ok(response);
     }
 }

@@ -1,12 +1,10 @@
 package com.webexpenses.claims.service;
 
 import com.webexpenses.claims.dto.LoginRequest;
-import com.webexpenses.claims.dto.LoginResponse;
 import com.webexpenses.claims.entity.User;
 import com.webexpenses.claims.repository.UserRepository;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
