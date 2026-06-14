@@ -1,3 +1,10 @@
 spring:
   application:
     name: claims
+  datasource:
+    url: jdbc:postgresql://localhost:5432/claims
+    username: claims
+    password: claims
+  jpa:
+    hibernate:
+      ddl-auto: update
