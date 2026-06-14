@@ -1,36 +1,55 @@
-# webexpenses_tech_test
+# Expense Claims API
 
-## Running with Docker/Podman Compose
+A Spring Boot backend for an internal expense claim system. Employees submit claims; approvers approve or reject them. Every state change is audited.
 
-### Prerequisites
+## Prerequisites
 
+- Java 21
 - [Docker](https://docs.docker.com/get-docker/) or [Podman](https://podman.io/getting-started/installation) with compose support
+- [just](https://github.com/casey/just) (optional, but recommended)
 
-### Start the application
-
-```bash
-# If using Docker:
-docker compose up --build
-
-# For Podman:
-podman compose up --build
-```
-
-### Stop the application
+## Quick Start
 
 ```bash
-# Docker:
-docker compose down
-podman compose down
+# Start the app + Postgres via compose
+just up
+
+# Or without just:
+podman compose up --build -d
 ```
 
-To also remove the database volume (wipes all data):
+The API is available at `http://localhost:8080`.
+
+## Available Commands
+
+| Command | Description |
+|---------|-------------|
+| `just build` | Build the application (skip tests) |
+| `just test` | Run unit/integration tests (H2, no external deps) |
+| `just e2e` | Start compose stack and run E2E tests against it |
+| `just test-all` | Run unit tests then E2E tests |
+| `just up` | Start the compose stack (app + postgres) |
+| `just down` | Stop the compose stack |
+| `just down-clean` | Stop and wipe database volume |
+| `just logs` | Tail app container logs |
+| `just restart-app` | Rebuild and restart the app container |
+
+## Testing
+
+### Unit & Integration Tests
 
 ```bash
-docker compose down -v
-podman compose down -v
+just test
+# or: ./gradlew test
 ```
 
-## Manual API Testing
+### E2E Tests
 
-The file `requests.http` contains sample requests for the auth endpoint (valid and invalid cases). Open it in IntelliJ or VS Code (with the REST Client extension) to execute requests directly against a running instance.
+```bash
+just e2e
+# or manually:
+podman compose up --build -d
+./gradlew e2eTest
+```
+
+Runs a full user flow against the live compose stack: login, submit claims, approve/reject, verify audit trail, and access control checks. Uses JDK `HttpClient` — no Spring context.
