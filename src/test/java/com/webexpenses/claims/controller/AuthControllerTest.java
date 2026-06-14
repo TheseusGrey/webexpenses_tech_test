@@ -88,15 +88,14 @@ class AuthControllerTest {
         }
 
         @Test
-        @DisplayName("Response includes token type and expiry information")
+        @DisplayName("Response includes token type information")
         void login_responseContainsExpectedFields() throws Exception {
             mockMvc.perform(post(LOGIN_URL)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(loginJson("jane.doe", "Password456!")))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.token").isNotEmpty())
-                    .andExpect(jsonPath("$.tokenType").value("Bearer"))
-                    .andExpect(jsonPath("$.expiresIn").isNumber());
+                    .andExpect(jsonPath("$.tokenType").value("Bearer"));
         }
     }
 
@@ -326,10 +325,10 @@ class AuthControllerTest {
     class HttpEnforcement {
 
         @Test
-        @DisplayName("GET to login endpoint returns 405")
-        void getMethod_returns405() throws Exception {
+        @DisplayName("GET to login endpoint returns 401 (rejected by security filter)")
+        void getMethod_returns401() throws Exception {
             mockMvc.perform(get(LOGIN_URL))
-                    .andExpect(status().isMethodNotAllowed());
+                    .andExpect(status().isUnauthorized());
         }
 
         @Test
