@@ -53,7 +53,7 @@ public class ExpenseClaimService {
         }
 
         ExpenseClaim claim = claimRepository.save(ExpenseClaim.builder()
-                .employeeId(userId)
+                .userId(userId)
                 .description(request.description())
                 .amount(request.amount())
                 .expenseDate(expenseDate)
@@ -80,8 +80,8 @@ public class ExpenseClaimService {
     public List<ClaimResponse> getClaims(Optional<UUID> userId, Optional<ClaimStatus> status) {
         List<ExpenseClaim> claims = userId
                 .map(uid -> status
-                        .map(s -> claimRepository.findByEmployeeIdAndStatus(uid, s))
-                        .orElseGet(() -> claimRepository.findByEmployeeId(uid)))
+                        .map(s -> claimRepository.findByUserIdAndStatus(uid, s))
+                        .orElseGet(() -> claimRepository.findByUserId(uid)))
                 .orElseGet(() -> status
                         .map(claimRepository::findByStatus)
                         .orElseThrow());
@@ -187,7 +187,7 @@ public class ExpenseClaimService {
     private ClaimResponse toResponse(ExpenseClaim claim) {
         return new ClaimResponse(
                 claim.getId(),
-                claim.getEmployeeId(),
+                claim.getUserId(),
                 claim.getDescription(),
                 claim.getAmount(),
                 claim.getExpenseDate(),

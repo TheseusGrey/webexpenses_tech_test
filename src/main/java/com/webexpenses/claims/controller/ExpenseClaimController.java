@@ -61,7 +61,7 @@ public class ExpenseClaimController {
         TokenService.TokenClaims claims = tokenService.extractUser(auth);
         ClaimResponse response = claimService.submitClaim(request, claims.username(), claims.userId());
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     /**
@@ -82,7 +82,7 @@ public class ExpenseClaimController {
         // everything on everyone could be useful here (also for support/debugging)
         if (id == null && status == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "At least one filter (user or status) is required");
+                    "At least one filter (id or status) is required");
         }
 
         TokenService.TokenClaims claims = tokenService.extractUser(auth);
@@ -92,7 +92,6 @@ public class ExpenseClaimController {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
             }
         }
-
 
         ClaimStatus parsedStatus = null;
         if (status != null) {
@@ -119,15 +118,13 @@ public class ExpenseClaimController {
             @PathVariable UUID id,
             JwtAuthenticationToken auth) {
 
+        ClaimResponse response = claimService.getClaim(id);
         TokenService.TokenClaims claims = tokenService.extractUser(auth);
 
-        if (claims.role() == Role.EMPLOYEE) {
-            if (!claims.userId().equals(id)) {
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
-            }
+        if (claims.role() == Role.EMPLOYEE && !claims.userId().equals(response.userId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
         }
 
-        ClaimResponse response = claimService.getClaim(id);
         return ResponseEntity.ok(response);
     }
 

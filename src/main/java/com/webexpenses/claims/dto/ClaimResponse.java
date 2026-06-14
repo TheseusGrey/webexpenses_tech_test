@@ -7,7 +7,7 @@ import java.util.UUID;
 
 public record ClaimResponse(
         UUID id,
-        UUID employeeId,
+        UUID userId,
         String description,
         BigDecimal amount,
         LocalDate expenseDate,

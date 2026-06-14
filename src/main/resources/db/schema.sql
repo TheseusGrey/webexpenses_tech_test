@@ -45,7 +45,7 @@ ON CONFLICT (username) DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS expense_claims (
     id                  UUID            PRIMARY KEY DEFAULT gen_random_uuid(),
-    employee_id         UUID            NOT NULL REFERENCES users(id),
+    user_id             UUID            NOT NULL REFERENCES users(id),
     description         VARCHAR(255)    NOT NULL,
     amount              NUMERIC(10, 2)  NOT NULL CHECK (amount > 0),
     expense_date        DATE            NOT NULL,
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS expense_claims (
     updated_at          TIMESTAMP       NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_claims_employee_id ON expense_claims (employee_id);
+CREATE INDEX idx_claims_user_id ON expense_claims (user_id);
 CREATE INDEX idx_claims_status ON expense_claims (status);
 
 -- ============================================================================

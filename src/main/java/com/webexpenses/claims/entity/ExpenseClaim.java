@@ -24,8 +24,8 @@ public class ExpenseClaim {
     @Column(nullable = false, updatable = false)
     private UUID id;
 
-    @Column(name = "employee_id", nullable = false)
-    private UUID employeeId;
+    @Column(name = "user_id", nullable = false)
+    private UUID userId;
 
     @Column(nullable = false, length = 255)
     private String description;

@@ -9,9 +9,9 @@ import java.util.UUID;
 
 public interface ExpenseClaimRepository extends JpaRepository<ExpenseClaim, UUID> {
 
-    List<ExpenseClaim> findByEmployeeId(UUID employeeId);
+    List<ExpenseClaim> findByUserId(UUID userId);
 
     List<ExpenseClaim> findByStatus(ClaimStatus status);
 
-    List<ExpenseClaim> findByEmployeeIdAndStatus(UUID employeeId, ClaimStatus status);
+    List<ExpenseClaim> findByUserIdAndStatus(UUID userId, ClaimStatus status);
 }

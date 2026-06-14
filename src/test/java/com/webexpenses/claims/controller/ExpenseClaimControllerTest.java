@@ -137,7 +137,7 @@ class ExpenseClaimControllerTest {
                     .andExpect(jsonPath("$.expenseDate").value("2024-03-15"))
                     .andExpect(jsonPath("$.category").value("MEALS"))
                     .andExpect(jsonPath("$.status").value("PENDING"))
-                    .andExpect(jsonPath("$.employeeId").value(johnId.toString()))
+                    .andExpect(jsonPath("$.userId").value(johnId.toString()))
                     .andExpect(jsonPath("$.createdAt").exists());
         }
 
@@ -292,13 +292,13 @@ class ExpenseClaimControllerTest {
             submitClaim(asEmployee());
 
             mockMvc.perform(get("/api/claims")
-                            .param("user", johnId.toString())
+                            .param("id", johnId.toString())
                             .with(asEmployee()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").isArray())
                     .andExpect(jsonPath("$", hasSize(1)))
                     .andExpect(jsonPath("$[0].description").value("Business lunch with client"))
-                    .andExpect(jsonPath("$[0].employeeId").value(johnId.toString()));
+                    .andExpect(jsonPath("$[0].userId").value(johnId.toString()));
         }
 
         @Test
@@ -307,7 +307,7 @@ class ExpenseClaimControllerTest {
             submitClaim(asJane());
 
             mockMvc.perform(get("/api/claims")
-                            .param("user", janeId.toString())
+                            .param("id", janeId.toString())
                             .with(asEmployee()))
                     .andExpect(status().isForbidden());
         }
@@ -342,12 +342,12 @@ class ExpenseClaimControllerTest {
             submitClaim(asJane());
 
             mockMvc.perform(get("/api/claims")
-                            .param("user", johnId.toString())
+                            .param("id", johnId.toString())
                             .with(asApprover()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").isArray())
                     .andExpect(jsonPath("$", hasSize(1)))
-                    .andExpect(jsonPath("$[0].employeeId").value(johnId.toString()));
+                    .andExpect(jsonPath("$[0].userId").value(johnId.toString()));
         }
 
         @Test
@@ -357,13 +357,13 @@ class ExpenseClaimControllerTest {
             submitClaim(asJane());
 
             mockMvc.perform(get("/api/claims")
-                            .param("user", johnId.toString())
+                            .param("id", johnId.toString())
                             .param("status", "PENDING")
                             .with(asApprover()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").isArray())
                     .andExpect(jsonPath("$", hasSize(1)))
-                    .andExpect(jsonPath("$[0].employeeId").value(johnId.toString()));
+                    .andExpect(jsonPath("$[0].userId").value(johnId.toString()));
         }
 
         @Test
@@ -381,7 +381,7 @@ class ExpenseClaimControllerTest {
                             .with(asApprover()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(1)))
-                    .andExpect(jsonPath("$[0].employeeId").value(janeId.toString()));
+                    .andExpect(jsonPath("$[0].userId").value(janeId.toString()));
         }
 
         @Test
@@ -397,7 +397,7 @@ class ExpenseClaimControllerTest {
         @DisplayName("Getting claims should return OK when employee has none")
         void getsClaims_withNoClaims_returns200WithEmptyArray() throws Exception {
             mockMvc.perform(get("/api/claims")
-                            .param("user", johnId.toString())
+                            .param("id", johnId.toString())
                             .with(asEmployee()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").isArray())
@@ -407,7 +407,7 @@ class ExpenseClaimControllerTest {
         @Test
         @DisplayName("Cannot get claims when unauthenticated")
         void getsClaims_unauthenticated_returns401() throws Exception {
-            mockMvc.perform(get("/api/claims").param("user", johnId.toString()))
+            mockMvc.perform(get("/api/claims").param("id", johnId.toString()))
                     .andExpect(status().isUnauthorized());
         }
     }
