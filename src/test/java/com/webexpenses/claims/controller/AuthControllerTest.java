@@ -143,8 +143,8 @@ class AuthControllerTest {
 
             // Both should return the same error structure (no user enumeration)
             ObjectMapper mapper = new ObjectMapper();
-            String badUserMsg = mapper.readTree(badUserResponse).path("error").asText();
-            String badPassMsg = mapper.readTree(badPassResponse).path("error").asText();
+            String badUserMsg = mapper.readTree(badUserResponse).path("error").asString();
+            String badPassMsg = mapper.readTree(badPassResponse).path("error").asString();
             assert badUserMsg.equals(badPassMsg) :
                     "Error messages differ - potential user enumeration vulnerability";
         }
