@@ -3,21 +3,25 @@ package com.webexpenses.claims.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.util.List;
 
 /**
  * Security configuration for stateless JWT-based authentication.
@@ -29,13 +33,17 @@ import java.security.interfaces.RSAPublicKey;
  *   (ref: https://docs.spring.io/spring-security/reference/servlet/exploits/csrf.html#csrf-when)
  * - Session: STATELESS - no HttpSession created or used
  * - /api/auth/login permitted without authentication; all other endpoints require a valid JWT
+ * - Method-level security via @RolesAllowed (JSR-250) for role enforcement
+ * - Custom JwtAuthenticationConverter maps our "role" claim to ROLE_ authorities
  *
  * References:
  * - https://docs.spring.io/spring-security/reference/servlet/oauth2/resource-server/jwt.html
  * - https://docs.spring.io/spring-security/reference/servlet/exploits/csrf.html
+ * - https://docs.spring.io/spring-security/reference/servlet/authorization/method-security.html
  */
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(jsr250Enabled = true)
 public class SecurityConfig {
 
     private final RSAPublicKey publicKey;
@@ -57,8 +65,26 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(jwt -> jwt.decoder(jwtDecoder())))
+                        .jwt(jwt -> jwt
+                                .decoder(jwtDecoder())
+                                .jwtAuthenticationConverter(jwtAuthenticationConverter())))
                 .build();
+    }
+
+    /**
+     * Maps our custom "role" JWT claim to Spring Security granted authorities.
+     * The "role" claim (e.g. "EMPLOYEE") becomes "ROLE_EMPLOYEE" which is what
+     * @RolesAllowed("EMPLOYEE") checks for.
+     */
+    @Bean
+    public JwtAuthenticationConverter jwtAuthenticationConverter() {
+        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+        converter.setJwtGrantedAuthoritiesConverter(jwt -> {
+            String role = jwt.getClaimAsString("role");
+            if (role == null) return List.of();
+            return List.of(new SimpleGrantedAuthority("ROLE_" + role));
+        });
+        return converter;
     }
 
     @Bean
@@ -69,8 +95,6 @@ public class SecurityConfig {
     /**
      * JwtEncoder for signing tokens with our RSA private key.
      * Uses NimbusJwtEncoder.withKeyPair() builder (Spring Security 7+).
-     *
-     * Ref: NimbusJwtEncoder$RsaKeyPairJwtEncoderBuilder
      */
     @Bean
     public JwtEncoder jwtEncoder() {
@@ -80,8 +104,6 @@ public class SecurityConfig {
     /**
      * JwtDecoder for verifying tokens with our RSA public key.
      * Uses RS256 by default (NimbusJwtDecoder.withPublicKey).
-     *
-     * Ref: https://docs.spring.io/spring-security/reference/servlet/oauth2/resource-server/jwt.html#oauth2resourceserver-jwt-decoder-public-key-builder
      */
     @Bean
     public JwtDecoder jwtDecoder() {
