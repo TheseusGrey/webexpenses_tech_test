@@ -1,6 +1,6 @@
 # Expense Claims API
 
-A Spring Boot backend for an internal expense claim system. Employees submit claims; approvers approve or reject them. Every state change is audited.
+A Spring Boot backend for an internal expense claim system. Employees submit claims; approvers approve or reject them. Every state change is audited. For steps on transitioning from local compose setup to aws/prod, see [DEPLOY.md](docs/DEPLOY.mdDEPLOY.md).
 
 ## Prerequisites
 
