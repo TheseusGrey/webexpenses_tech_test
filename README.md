@@ -52,4 +52,6 @@ podman compose up --build -d
 ./gradlew e2eTest
 ```
 
-Runs a full user flow against the live compose stack: login, submit claims, approve/reject, verify audit trail, and access control checks. Uses JDK `HttpClient` — no Spring context.
+### Manual Testing
+
+There's a `requests.http` file in the project, if you're using `VSCode` or `IntelliJ` you can run the requests defined there to manually test the endpoints via an extension. (You will need a token for endpoints beyondf the auth stage).
