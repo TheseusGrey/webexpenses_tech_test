@@ -23,4 +23,4 @@ Some other thoughts:
 - Keeping individual services stateless as much as possible gives more options in terms of scalability (since you can scale horizontally with no issues).
 - Integrating with SSO providers through the auth service is another way to reduce security burdens since it minimises the account data you need to store yourself.
 - Databases can be frequent sources of bottlenecks when it comes to performance. caching, transactions can help mitigate this.
-    
+- [Localstack](https://www.localstack.cloud/) is also an alternative for testing/local development if required.  
